@@ -1,6 +1,19 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("maven-publish")
+}
+afterEvaluate {
+    publishing {
+
+        publications {
+            create<MavenPublication>("maven") {
+                groupId = "com.androidtoaster"
+                artifactId = "androidtoaster"
+                version = "1.0.7"
+            }
+        }
+    }
 }
 
 android {
@@ -22,6 +35,13 @@ android {
 
     buildTypes {
         release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
