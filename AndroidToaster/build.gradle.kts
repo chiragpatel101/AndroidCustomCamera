@@ -15,7 +15,7 @@ val mLibraryDescription = "Simple Library for simple things!"
 
 android {
     namespace = "com.androidtoaster"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 24
