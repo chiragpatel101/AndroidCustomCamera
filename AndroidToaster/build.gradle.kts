@@ -5,13 +5,6 @@ plugins {
 
 }
 // Declare library details
-val mGroupId = "com.androidtoaster"
-val mArtifactId = "toastermessage"
-val mVersionCode = 8
-val mVersionName = "1.0.9"
-
-val mLibraryName = "toastermessage"
-val mLibraryDescription = "Simple Library for simple things!"
 
 android {
     namespace = "com.androidtoaster"
@@ -41,6 +34,15 @@ android {
         jvmTarget = "1.8"
     }
 }
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
+    }
+}
 
 dependencies {
 
@@ -57,38 +59,6 @@ val androidSourcesJar by tasks.registering(Jar::class) {
     from(android.sourceSets["main"].java.srcDirs)
 }
 
-// Make configuration for publishing artifact.
-afterEvaluate {
-    publishing {
-        publications {
-            create<MavenPublication>("maven") {
-                groupId = mGroupId
-                artifactId = mArtifactId
-                version = mVersionName
 
-                from(components["release"])
-
-                artifact(androidSourcesJar)
-
-                pom {
-                    name.set(mLibraryName)
-                    description.set(mLibraryDescription)
-                }
-            }
-        }
-
-        // Update repository details and credentials.
-//        repositories {
-//            maven {
-//                name = "GitHubPackages"
-//                url = uri("https://github.com/chiragpatel101/AndroidToaster")
-//                credentials {
-//                    username = System.getenv("GPR_USER")
-//                    password = System.getenv("GPR_KEY")
-//                }
-//            }
-//        }
-    }
-}
 
 // Assembling should be performed before publishing package
