@@ -64,7 +64,15 @@ android {
     }
 
 }
-
+//publishing {
+//    publications {
+//        register<MavenPublication>("release") {
+//            afterEvaluate {
+//                from(components["release"])
+//            }
+//        }
+//    }
+//}
 dependencies {
     implementation(project(":AndroidToaster"))
     implementation("androidx.core:core-ktx:1.9.0")
