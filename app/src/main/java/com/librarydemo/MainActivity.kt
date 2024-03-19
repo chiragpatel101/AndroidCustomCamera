@@ -1,49 +1,51 @@
 package com.librarydemo
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import com.androidtoaster.CameraFragment
 import com.androidtoaster.ToasterMessage
-import com.librarydemo.ui.theme.LibraryDemoTheme
+import com.librarydemo.databinding.ActivityMainBinding
+import java.io.File
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+    private lateinit var binding : ActivityMainBinding
+    private val cameraFragment by lazy {
+        CameraFragment.newInstance(true,)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         ToasterMessage.showToast(this,"Test Message")
-        setContent {
-            LibraryDemoTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
+
+        addFragment(cameraFragment)
+        binding.btnCaptureImage.setOnClickListener {
+            performCameraClick()
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    LibraryDemoTheme {
-        Greeting("Android")
+    private fun addFragment(cameraFragment: CameraFragment) {
+        val fragmentManager = supportFragmentManager
+        val ft = fragmentManager.beginTransaction()
+        ft.replace(R.id.mainContainer, cameraFragment)
+        ft.commitAllowingStateLoss()
+    }
+    private fun performCameraClick(){
+        cameraFragment.takePhoto(captureImagePath()) {
+            Log.v(""," performCameraClick : $it")
+            ToasterMessage.showToast(this, it)
+        }
+    }
+    fun captureImagePath(): File {
+        val timeStamp = System.currentTimeMillis()
+        val imageFileName = "$timeStamp.PNG"
+        val folder = File(this.getExternalFilesDir(null), "CaptureImages")
+        Log.v("", " captureImagePath : ${folder.absolutePath}")
+        if (!folder.exists()) {
+            folder.mkdir()
+        }
+        return File(folder, imageFileName)
     }
 }
