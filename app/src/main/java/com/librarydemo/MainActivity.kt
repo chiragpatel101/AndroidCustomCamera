@@ -1,6 +1,7 @@
 package com.librarydemo
 
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.androidtoaster.CameraFragment
@@ -11,7 +12,7 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
     private val cameraFragment by lazy {
-        CameraFragment.newInstance(true,)
+        CameraFragment.newInstance()
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,8 +41,8 @@ class MainActivity : AppCompatActivity() {
     }
     fun captureImagePath(): File {
         val timeStamp = System.currentTimeMillis()
-        val imageFileName = "$timeStamp.PNG"
-        val folder = File(this.getExternalFilesDir(null), "CaptureImages")
+        val imageFileName = "$timeStamp.jpg"
+        val folder = File(this.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "CaptureImages")
         Log.v("", " captureImagePath : ${folder.absolutePath}")
         if (!folder.exists()) {
             folder.mkdir()
