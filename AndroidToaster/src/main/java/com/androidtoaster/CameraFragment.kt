@@ -36,12 +36,14 @@ import java.lang.Float.min
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-typealias OnImageCapture = (imagePath: String) -> Unit
+typealias OnImageCapture = (absolutePath: String, uri : Uri, bitmap : Bitmap) -> Unit
 
 const val SWITCH_CAMERA = "SWITCH_CAMERA"
 const val ENABLE_ZOOM_IN_ZOOM_OUT = "ENABLE_ZOOM_IN_ZOOM_OUT"
 const val COMPRESS_IMAGE = "COMPRESS_IMAGE"
 const val COMPRESS_IMAGE_QUALITY = "COMPRESS_IMAGE_QUALITY"
+const val ENABLE_FLASH_MODES = "ENABLE_FLASH_MODES"
+const val DEFAULT_FLASH_MODE = "DEFAULT_FLASH_MODE"
 
 class CameraFragment : Fragment() {
 
@@ -55,6 +57,9 @@ class CameraFragment : Fragment() {
     private var camera: Camera? = null
     private var allowCompressImage = false
     private var compressImageQuality : Int = 100
+    private var enableFlashMode = false
+    private var defaultFlashMode = ImageCapture.FLASH_MODE_AUTO
+    private var captureImageInProcess = false
     private val cameraPermissionResult =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permissionGranted ->
             if (!permissionGranted) {
@@ -118,11 +123,34 @@ class CameraFragment : Fragment() {
             }
         }
 
+        binding.ivFlashCamera.setOnClickListener {
+            onFlashIconClicked()
+        }
         allowCompressImage = arguments?.getBoolean(COMPRESS_IMAGE)!!
 
         compressImageQuality = arguments?.getInt(COMPRESS_IMAGE_QUALITY)!!
-    }
 
+        enableFlashMode = arguments?.getBoolean(ENABLE_FLASH_MODES)!!
+
+        if (enableFlashMode){
+            binding.ivFlashCamera.visibility = View.VISIBLE
+        }else{
+            binding.ivFlashCamera.visibility = View.GONE
+        }
+        defaultFlashMode = arguments?.getInt(DEFAULT_FLASH_MODE)!!
+    }
+    private fun onFlashIconClicked() {
+        if (imageCapture?.flashMode == ImageCapture.FLASH_MODE_AUTO) {
+            imageCapture?.flashMode = ImageCapture.FLASH_MODE_OFF
+            binding.ivFlashCamera.setBackgroundResource(R.drawable.ic_flash_off)
+        } else if (imageCapture?.flashMode == ImageCapture.FLASH_MODE_OFF) {
+            imageCapture?.flashMode = ImageCapture.FLASH_MODE_ON
+            binding.ivFlashCamera.setBackgroundResource(R.drawable.ic_flash_on)
+        } else {
+            imageCapture?.flashMode = ImageCapture.FLASH_MODE_AUTO
+            binding.ivFlashCamera.setBackgroundResource(R.drawable.ic_flash_auto)
+        }
+    }
     private fun performSwitchCamera() {
         cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
             CameraSelector.DEFAULT_FRONT_CAMERA
@@ -138,8 +166,13 @@ class CameraFragment : Fragment() {
         }
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
+            val rotation = binding.preview.display.rotation
+            imageCapture = ImageCapture.Builder()
+                .setFlashMode(defaultFlashMode)
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setTargetRotation(rotation)
+                .build()
 
-            imageCapture = ImageCapture.Builder().build()
 
             try {
                 cameraProvider.unbindAll()
@@ -151,7 +184,8 @@ class CameraFragment : Fragment() {
     }
 
     fun takePhoto(file : File,onImageCapture: OnImageCapture) {
-        if (checkCameraPermission()) {
+        if (checkCameraPermission() && (!captureImageInProcess)) {
+            captureImageInProcess = true
             imageCapture?.let {
                 val outputFileOptions =
                     ImageCapture.OutputFileOptions.Builder(file).build()
@@ -161,19 +195,28 @@ class CameraFragment : Fragment() {
                     object : ImageCapture.OnImageSavedCallback {
                         override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                             lifecycleScope.launch(Dispatchers.Main) {
-                                Log.v("", " onImageSaved 1 : " + outputFileResults.savedUri)
-                                Log.v("", " onImageSaved 2 : " + file.absolutePath)
-                                onImageCapture.invoke(outputFileResults.savedUri.toString())
                                 context?.let { context ->
                                     CaptureImageHelper.handleSamplingAndRotationBitmap(
                                         context,
                                         file.toUri()
-                                    )?.let {
+                                    )?.let {bitmap ->
                                         if (allowCompressImage) {
-                                            storeBitmap(it, file)
+                                            file.toUri().run {
+                                                context.contentResolver?.openOutputStream(this)?.run {
+                                                    bitmap.compress(Bitmap.CompressFormat.JPEG, compressImageQuality, this)
+                                                    close()
+
+                                                    onImageCapture.invoke(file.absolutePath,
+                                                        outputFileResults.savedUri!!,bitmap)
+                                                }
+                                            }
+                                        }else{
+                                            onImageCapture.invoke(file.absolutePath,
+                                                outputFileResults.savedUri!!,bitmap)
                                         }
                                     }
                                 }
+                                captureImageInProcess = false
                             }
                         }
 
@@ -184,6 +227,7 @@ class CameraFragment : Fragment() {
                                     "Error in taking photo",
                                     Toast.LENGTH_SHORT
                                 ).show()
+                                captureImageInProcess = false
                             }
                         }
 
@@ -191,14 +235,6 @@ class CameraFragment : Fragment() {
             }
         }else{
             cameraPermissionResult.launch(Manifest.permission.CAMERA)
-        }
-    }
-    private fun storeBitmap(bitmap: Bitmap, file: File) {
-        file.toUri().run {
-            context?.contentResolver?.openOutputStream(this)?.run {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, compressImageQuality, this)
-                close()
-            }
         }
     }
 
@@ -244,10 +280,16 @@ class CameraFragment : Fragment() {
         @Target(AnnotationTarget.VALUE_PARAMETER)
         annotation class Range(val min: Int, val max: Int)
 
+        /*
+        * Flash in camera, bitmap path
+        * */
+
         fun newInstance(switchCameraEnable: Boolean = true,
                         allowZoomInZoomOut : Boolean = true,
                         allowCompressImage : Boolean = false,
-                        @Range(min = 1, max = 100) compressQuality: Int = 100): CameraFragment {
+                        @Range(min = 1, max = 100) compressQuality: Int = 100,
+                        enableFlashMode : Boolean = true,
+                        defaultFlashMode : FlashMode = FlashMode.AUTO): CameraFragment {
 
             if (allowCompressImage && compressQuality>100){
                 throw IllegalArgumentException("compressQuality parameter value should not be $compressQuality , it should be in range between 0 to 100. ")
@@ -259,8 +301,15 @@ class CameraFragment : Fragment() {
             args.putBoolean(ENABLE_ZOOM_IN_ZOOM_OUT, allowZoomInZoomOut)
             args.putBoolean(COMPRESS_IMAGE, allowCompressImage)
             args.putInt(COMPRESS_IMAGE_QUALITY, compressQuality)
+            args.putBoolean(ENABLE_FLASH_MODES, enableFlashMode)
+            args.putInt(DEFAULT_FLASH_MODE, defaultFlashMode.value)
             fragment.arguments = args
             return fragment
         }
+    }
+    enum class FlashMode(val value : Int) {
+        ON(ImageCapture.FLASH_MODE_ON),
+        OFF(ImageCapture.FLASH_MODE_OFF),
+        AUTO(ImageCapture.FLASH_MODE_AUTO)
     }
 }

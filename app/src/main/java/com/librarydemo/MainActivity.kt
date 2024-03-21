@@ -34,9 +34,9 @@ class MainActivity : AppCompatActivity() {
         ft.commitAllowingStateLoss()
     }
     private fun performCameraClick(){
-        cameraFragment.takePhoto(captureImagePath()) {
-            Log.v(""," performCameraClick : $it")
-            ToasterMessage.showToast(this, it)
+        cameraFragment.takePhoto(captureImagePath()) {absolutePath , uri , bitmap ->
+            Log.v(""," performCameraClick : $absolutePath => URI - ${uri.toString()}")
+            ToasterMessage.showToast(this, absolutePath)
         }
     }
     fun captureImagePath(): File {

@@ -15,11 +15,20 @@
     <ImageView
         android:layout_width="30dp"
         android:layout_height="30dp"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/ivFlashCamera"
+        android:layout_margin="20dp"
+        android:layout_above="@+id/ivSwitchCamera"
+        android:background="@drawable/ic_flash_auto"/>
+
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:id="@+id/ivSwitchCamera"
         android:layout_margin="20dp"
-        android:visibility="gone"
+
         android:background="@color/cardview_light_background"/>
 
 </RelativeLayout>
