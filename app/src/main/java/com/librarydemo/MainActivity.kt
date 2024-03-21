@@ -1,8 +1,12 @@
 package com.librarydemo
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.androidtoaster.CameraFragment
 import com.androidtoaster.ToasterMessage
@@ -19,13 +23,14 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        ToasterMessage.showToast(this,"Test Message")
+//        ToasterMessage.showToast(this,"Test Message")
 
         addFragment(cameraFragment)
         binding.btnCaptureImage.setOnClickListener {
             performCameraClick()
         }
     }
+
 
     private fun addFragment(cameraFragment: CameraFragment) {
         val fragmentManager = supportFragmentManager
@@ -39,10 +44,11 @@ class MainActivity : AppCompatActivity() {
             ToasterMessage.showToast(this, absolutePath)
         }
     }
-    fun captureImagePath(): File {
+    private fun captureImagePath(): File {
         val timeStamp = System.currentTimeMillis()
         val imageFileName = "$timeStamp.jpg"
-        val folder = File(this.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "CaptureImages")
+//        val folder = File(this.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "CaptureImages")
+        val folder = File(Environment.getExternalStorageDirectory(), "CaptureImages")
         Log.v("", " captureImagePath : ${folder.absolutePath}")
         if (!folder.exists()) {
             folder.mkdir()

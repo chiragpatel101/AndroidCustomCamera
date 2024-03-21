@@ -6,9 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.storage.StorageManager
+import android.os.storage.StorageVolume
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ScaleGestureDetector
@@ -16,6 +19,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -184,7 +188,12 @@ class CameraFragment : Fragment() {
     }
 
     fun takePhoto(file : File,onImageCapture: OnImageCapture) {
+
+        checkFilePathIsPrivateOrNot(file)
+
         if (checkCameraPermission() && (!captureImageInProcess)) {
+            Log.v(""," takePhoto 1: ")
+            binding.progressBar.visibility = View.VISIBLE
             captureImageInProcess = true
             imageCapture?.let {
                 val outputFileOptions =
@@ -196,11 +205,13 @@ class CameraFragment : Fragment() {
                         override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                             lifecycleScope.launch(Dispatchers.Main) {
                                 context?.let { context ->
+                                    Log.v(""," takePhoto 2: ")
                                     CaptureImageHelper.handleSamplingAndRotationBitmap(
                                         context,
                                         file.toUri()
                                     )?.let {bitmap ->
                                         if (allowCompressImage) {
+                                            Log.v(""," takePhoto 3: ")
                                             file.toUri().run {
                                                 context.contentResolver?.openOutputStream(this)?.run {
                                                     bitmap.compress(Bitmap.CompressFormat.JPEG, compressImageQuality, this)
@@ -213,21 +224,30 @@ class CameraFragment : Fragment() {
                                         }else{
                                             onImageCapture.invoke(file.absolutePath,
                                                 outputFileResults.savedUri!!,bitmap)
+
+                                            MediaScannerConnection.scanFile(context, arrayOf(file.toString()),
+                                                null, null)
                                         }
                                     }
                                 }
+                                Log.v(""," takePhoto 4: ")
                                 captureImageInProcess = false
+                                binding.progressBar.visibility = View.GONE
                             }
                         }
 
                         override fun onError(exception: ImageCaptureException) {
+                            Log.v(""," onError : "+ exception.imageCaptureError)
+                            Log.v(""," onError : "+ exception.printStackTrace())
+                            Log.v(""," onError : "+ exception.message)
                             lifecycleScope.launch(Dispatchers.Main) {
                                 Toast.makeText(
                                     binding.root.context,
-                                    "Error in taking photo",
+                                    "Error : ${exception.message} ",
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 captureImageInProcess = false
+                                binding.progressBar.visibility = View.GONE
                             }
                         }
 
@@ -236,6 +256,15 @@ class CameraFragment : Fragment() {
         }else{
             cameraPermissionResult.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    private fun checkFilePathIsPrivateOrNot(file: File) {
+
+        if ((!file.absolutePath.contains("/storage/emulated/0/Android/data/${requireContext().packageName}/files"))
+            && (!file.absolutePath.contains("/data/user/0/${requireContext().packageName}/files"))){
+            throw Exception("You must have to use 'filesDir' or 'getExternalFilesDir' for file path, otherwise you have to add 'MANAGE_EXTERNAL_STORAGE' permission in your project with this given path")
+        }
+
     }
 
     private fun checkCameraPermission(): Boolean {
