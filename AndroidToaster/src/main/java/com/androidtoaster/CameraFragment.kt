@@ -2,6 +2,7 @@ package com.androidtoaster
 
 import android.Manifest
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,8 +11,10 @@ import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
+import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ScaleGestureDetector
@@ -229,6 +232,18 @@ class CameraFragment : Fragment() {
                                                 null, null)
                                         }
                                     }
+//
+//                                    val contentValues = ContentValues().apply {
+//                                        put(MediaStore.Images.Media.DISPLAY_NAME, file.name)
+//                                        put(MediaStore.Images.Media.MIME_TYPE, "image/jpg")
+//                                        put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_DCIM)
+//                                    }
+//                                    val contentResolver = context.contentResolver
+//                                    val uri: Uri? = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+
+
+
                                 }
                                 Log.v(""," takePhoto 4: ")
                                 captureImageInProcess = false
@@ -260,9 +275,16 @@ class CameraFragment : Fragment() {
 
     private fun checkFilePathIsPrivateOrNot(file: File) {
 
-        if ((!file.absolutePath.contains("/storage/emulated/0/Android/data/${requireContext().packageName}/files"))
-            && (!file.absolutePath.contains("/data/user/0/${requireContext().packageName}/files"))){
-            throw Exception("You must have to use 'filesDir' or 'getExternalFilesDir' for file path, otherwise you have to add 'MANAGE_EXTERNAL_STORAGE' permission in your project with this given path")
+        if ((!file.absolutePath.contains("/storage/emulated/0/Android/data/${requireContext().packageName}/"))
+            && (!file.absolutePath.contains("/data/user/0/${requireContext().packageName}/"))){
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (!Environment.isExternalStorageManager()) {
+                    Log.e("Exception","Either you have to use 'filesDir' or 'getExternalFilesDir' for file path OR you have to manage 'MANAGE_EXTERNAL_STORAGE' permission in your project for this given directory path")
+                    throw Exception("Either you have to use 'filesDir' or 'getExternalFilesDir' for file path OR you have to manage 'MANAGE_EXTERNAL_STORAGE' permission in your project for this given directory path")
+                }
+            }
+
         }
 
     }
@@ -321,6 +343,7 @@ class CameraFragment : Fragment() {
                         defaultFlashMode : FlashMode = FlashMode.AUTO): CameraFragment {
 
             if (allowCompressImage && compressQuality>100){
+                Log.e("Exception", "compressQuality parameter value should not be $compressQuality , it should be in range between 0 to 100. ")
                 throw IllegalArgumentException("compressQuality parameter value should not be $compressQuality , it should be in range between 0 to 100. ")
             }
 
