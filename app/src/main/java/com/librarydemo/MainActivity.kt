@@ -16,7 +16,13 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
     private val cameraFragment by lazy {
-        CameraFragment.newInstance()
+        CameraFragment.newInstance(defaultCameraMode = CameraFragment.DefaultCameraMode.BACK
+            ,switchCameraEnable = true
+            ,allowZoomInZoomOut = true
+            ,allowCompressImage = true
+            , compressImageQuality = 100
+            ,enableFlashMode = true
+            , defaultFlashMode = CameraFragment.FlashMode.AUTO)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,18 +47,12 @@ class MainActivity : AppCompatActivity() {
     private fun performCameraClick(){
         cameraFragment.takePhoto(captureImagePath()) {absolutePath , uri , bitmap ->
             Log.v(""," performCameraClick : $absolutePath => URI - ${uri.toString()}")
-            ToasterMessage.showToast(this, absolutePath)
         }
     }
     private fun captureImagePath(): File {
         val timeStamp = System.currentTimeMillis()
         val imageFileName = "$timeStamp.jpg"
-//        val folder = File(this.getExternalFilesDir(Environment.DIRECTORY_DCIM), "CaptureImages")
-        val folder = File(Environment.getExternalStorageDirectory(), "CaptureImages")
-        Log.v("", " captureImagePath 1 : ${folder.absolutePath}")
-        Log.v("", " captureImagePath 2 : ${this.cacheDir}")
-        Log.v("", " captureImagePath 3 : ${this.externalCacheDir}")
-        Log.v("", " captureImagePath 4 : ${this.filesDir}")
+        val folder = File(this.getExternalFilesDir(Environment.DIRECTORY_DCIM), "CaptureImages")
         if (!folder.exists()) {
             folder.mkdir()
         }

@@ -46,6 +46,7 @@ import java.util.concurrent.Executors
 typealias OnImageCapture = (absolutePath: String, uri : Uri, bitmap : Bitmap) -> Unit
 
 const val SWITCH_CAMERA = "SWITCH_CAMERA"
+const val DEFAULT_CAMERA_MODE = "DEFAULT_CAMERA_MODE"
 const val ENABLE_ZOOM_IN_ZOOM_OUT = "ENABLE_ZOOM_IN_ZOOM_OUT"
 const val COMPRESS_IMAGE = "COMPRESS_IMAGE"
 const val COMPRESS_IMAGE_QUALITY = "COMPRESS_IMAGE_QUALITY"
@@ -102,7 +103,14 @@ class CameraFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initView()
         cameraProviderFuture = ProcessCameraProvider.getInstance(this.requireContext())
-        cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+
+        val defaultCameraMode = arguments?.getInt(DEFAULT_CAMERA_MODE)!!
+        cameraSelector = if (defaultCameraMode == DefaultCameraMode.FRONT.value) {
+            CameraSelector.DEFAULT_FRONT_CAMERA
+        }else{
+            CameraSelector.DEFAULT_BACK_CAMERA
+        }
         imgCaptureExecutor = Executors.newSingleThreadExecutor()
         scaleGestureDetector = ScaleGestureDetector(requireContext(), ScaleListener())
         cameraPermissionResult.launch(Manifest.permission.CAMERA)
@@ -335,24 +343,26 @@ class CameraFragment : Fragment() {
         * Flash in camera, bitmap path
         * */
 
-        fun newInstance(switchCameraEnable: Boolean = true,
+        fun newInstance(defaultCameraMode : DefaultCameraMode = DefaultCameraMode.BACK
+                        ,switchCameraEnable: Boolean = true,
                         allowZoomInZoomOut : Boolean = true,
                         allowCompressImage : Boolean = false,
-                        @Range(min = 1, max = 100) compressQuality: Int = 100,
+                        @Range(min = 1, max = 100) compressImageQuality: Int = 100,
                         enableFlashMode : Boolean = true,
                         defaultFlashMode : FlashMode = FlashMode.AUTO): CameraFragment {
 
-            if (allowCompressImage && compressQuality>100){
-                Log.e("Exception", "compressQuality parameter value should not be $compressQuality , it should be in range between 0 to 100. ")
-                throw IllegalArgumentException("compressQuality parameter value should not be $compressQuality , it should be in range between 0 to 100. ")
+            if (allowCompressImage && compressImageQuality>100){
+                Log.e("Exception", "compressQuality parameter value should not be $compressImageQuality , it should be in range between 0 to 100. ")
+                throw IllegalArgumentException("compressQuality parameter value should not be $compressImageQuality , it should be in range between 0 to 100. ")
             }
 
             val fragment = CameraFragment()
             val args = Bundle()
             args.putBoolean(SWITCH_CAMERA, switchCameraEnable)
+            args.putInt(DEFAULT_CAMERA_MODE, defaultCameraMode.value)
             args.putBoolean(ENABLE_ZOOM_IN_ZOOM_OUT, allowZoomInZoomOut)
             args.putBoolean(COMPRESS_IMAGE, allowCompressImage)
-            args.putInt(COMPRESS_IMAGE_QUALITY, compressQuality)
+            args.putInt(COMPRESS_IMAGE_QUALITY, compressImageQuality)
             args.putBoolean(ENABLE_FLASH_MODES, enableFlashMode)
             args.putInt(DEFAULT_FLASH_MODE, defaultFlashMode.value)
             fragment.arguments = args
@@ -363,5 +373,10 @@ class CameraFragment : Fragment() {
         ON(ImageCapture.FLASH_MODE_ON),
         OFF(ImageCapture.FLASH_MODE_OFF),
         AUTO(ImageCapture.FLASH_MODE_AUTO)
+    }
+
+    enum class DefaultCameraMode(val value : Int){
+        FRONT(1),
+        BACK(2)
     }
 }
