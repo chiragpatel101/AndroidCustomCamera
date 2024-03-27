@@ -55,6 +55,7 @@ const val DEFAULT_FLASH_MODE = "DEFAULT_FLASH_MODE"
 
 class CameraFragment : Fragment() {
 
+
     private lateinit var binding: FragmentCameraBinding
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var cameraSelector: CameraSelector
