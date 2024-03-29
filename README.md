@@ -58,7 +58,7 @@ Step 3 :
 				, defaultFlashMode = CameraFragment.FlashMode.AUTO)
 		*/
 
-	Key explaination : 
+	Key parameter explanation : 
 	
 		defaultCameraMode = it will allow you to set default camera, you can set value for back and front
 	
