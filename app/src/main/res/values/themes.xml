@@ -2,4 +2,5 @@
 <resources>
 
     <style name="Theme.AndroidCustomCamera" parent="Theme.MaterialComponents.Light.NoActionBar" />
+
 </resources>
