@@ -1,4 +1,4 @@
-package com.androidtoaster
+package com.androidcustomcamera
 
 import android.Manifest
 import android.app.Activity
@@ -33,7 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.androidtoaster.databinding.FragmentCameraBinding
+import com.androidcustomcamera.databinding.FragmentCameraBinding
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

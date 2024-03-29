@@ -1,4 +1,4 @@
-package com.androidtoaster
+package com.androidcustomcamera
 
 import org.junit.Test
 

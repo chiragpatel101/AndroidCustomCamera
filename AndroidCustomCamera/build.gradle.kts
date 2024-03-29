@@ -7,7 +7,7 @@ plugins {
 // Declare library details
 
 android {
-    namespace = "com.androidtoaster"
+    namespace = "com.androidcustomcamera"
     compileSdk = 34
 
     defaultConfig {

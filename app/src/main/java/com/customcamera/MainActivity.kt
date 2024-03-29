@@ -1,16 +1,11 @@
-package com.librarydemo
+package com.customcamera
 
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.androidtoaster.CameraFragment
-import com.androidtoaster.ToasterMessage
-import com.librarydemo.databinding.ActivityMainBinding
+import com.androidcustomcamera.CameraFragment
+import com.customcamera.databinding.ActivityMainBinding
 import java.io.File
 
 class MainActivity : AppCompatActivity() {

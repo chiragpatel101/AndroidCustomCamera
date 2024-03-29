@@ -8,8 +8,8 @@ afterEvaluate {
 
         publications {
             create<MavenPublication>("maven") {
-                groupId = "com.androidtoaster"
-                artifactId = "androidtoaster"
+                groupId = "com.androidcustomcamera"
+                artifactId = "androidcustomcamera"
                 version = "1.1.4"
             }
         }
@@ -17,11 +17,11 @@ afterEvaluate {
 }
 
 android {
-    namespace = "com.librarydemo"
+    namespace = "com.customcamera"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.librarydemo"
+        applicationId = "com.customcamera"
         minSdk = 24
         targetSdk = 33
         versionCode = 1
@@ -69,7 +69,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":AndroidToaster"))
+    implementation(project(":AndroidCustomCamera"))
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")

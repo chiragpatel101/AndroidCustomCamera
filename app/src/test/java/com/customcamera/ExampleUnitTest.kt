@@ -1,4 +1,4 @@
-package com.librarydemo
+package com.customcamera
 
 import org.junit.Test
 

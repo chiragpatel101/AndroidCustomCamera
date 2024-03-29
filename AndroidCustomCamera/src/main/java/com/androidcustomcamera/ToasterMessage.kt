@@ -1,4 +1,4 @@
-package com.androidtoaster
+package com.androidcustomcamera
 
 import android.content.Context
 import android.widget.Toast

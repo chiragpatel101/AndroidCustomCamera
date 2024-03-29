@@ -15,6 +15,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LibraryDemo"
+rootProject.name = "AndroidCustomCamera"
 include(":app")
-include(":AndroidToaster")
+include(":AndroidCustomCamera")
